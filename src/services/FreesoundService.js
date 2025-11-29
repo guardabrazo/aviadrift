@@ -33,7 +33,7 @@ export class FreesoundService {
         let url;
         if (import.meta.env.PROD) {
             const targetUrl = `https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(query)}&filter=${encodeURIComponent(filter)}&fields=${fields}&token=${this.apiKey}&page_size=10`;
-            url = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+            url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
         } else {
             url = `${this.baseUrl}/search/text/?query=${encodeURIComponent(query)}&filter=${encodeURIComponent(filter)}&fields=${fields}&token=${this.apiKey}&page_size=10`;
         }
