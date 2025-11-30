@@ -531,6 +531,40 @@ input[type="range"]:hover::-moz-range-thumb {
     transform: scale(1.2);
 }
 
+/* Disabled State */
+input[type="range"]:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+input[type="range"]:disabled::-moz-range-thumb {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+input[type="range"]:disabled:hover::-webkit-slider-thumb {
+    transform: none;
+}
+
+input[type="range"]:disabled:hover::-moz-range-thumb {
+    transform: none;
+}
+
+input[type="range"]:disabled:hover::-moz-range-thumb {
+    transform: none;
+}
+
+input[type="range"]:disabled+.value-display {
+    opacity: 0.3;
+}
+
 /* Toggle Switch */
 .toggle-wrapper {
     position: relative;

@@ -155,6 +155,23 @@ export class MapManager {
                 }
             }
 
+            // Add Hillshading (Shadowing)
+            if (!this.map.getLayer('hillshading')) {
+                this.map.addLayer({
+                    'id': 'hillshading',
+                    'type': 'hillshade',
+                    'source': 'mapbox-dem',
+                    'layout': { visibility: 'visible' },
+                    'paint': {
+                        'hillshade-shadow-color': '#000000',
+                        'hillshade-highlight-color': '#ffffff',
+                        'hillshade-accent-color': '#000000',
+                        'hillshade-exaggeration': 0.05,
+                        'hillshade-opacity': 0.1
+                    }
+                }, firstSymbolId); // Insert below labels
+            }
+
             if (!this.map.getLayer('contour-lines-minor')) {
                 this.map.addLayer({
                     'id': 'contour-lines-minor',
