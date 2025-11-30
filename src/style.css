@@ -509,7 +509,7 @@ input[type="range"]::-webkit-slider-thumb {
     height: 12px;
     background: var(--accent);
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: 0;
     transition: transform var(--transition-fast);
 }
 
@@ -519,7 +519,7 @@ input[type="range"]::-moz-range-thumb {
     background: var(--accent);
     cursor: pointer;
     border: none;
-    border-radius: 50%;
+    border-radius: 0;
     transition: transform var(--transition-fast);
 }
 
@@ -542,7 +542,7 @@ input[type="range"]:hover::-moz-range-thumb {
 
 .toggle-wrapper.gray-outline {
     border: 1px solid var(--border-medium);
-    border-radius: 10px;
+    border-radius: 0;
     transition: border-color var(--transition-fast);
 }
 
@@ -564,7 +564,7 @@ input[type="range"]:hover::-moz-range-thumb {
     width: 12px;
     height: 12px;
     background: var(--text-muted);
-    border-radius: 50%;
+    border-radius: 0;
     transition: all var(--transition-fast);
 }
 

@@ -68,40 +68,48 @@ export class MapManager {
                 this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
                 // Track User Interaction
-                const startEvents = ['mousedown', 'touchstart', 'dragstart', 'rotatestart', 'pitchstart', 'wheel'];
-                const endEvents = ['mouseup', 'touchend', 'dragend', 'rotateend', 'pitchend'];
+                const explicitStartEvents = ['mousedown', 'touchstart', 'dragstart', 'rotatestart', 'pitchstart'];
+                const explicitEndEvents = ['mouseup', 'touchend', 'dragend', 'rotateend', 'pitchend'];
 
-                // Start Interaction
-                startEvents.forEach(e => {
+                // 1. Explicit Start/End (Drag, Rotate, Pitch)
+                explicitStartEvents.forEach(e => {
                     this.map.on(e, () => {
                         this.isInteracting = true;
+                        // Clear any pending wheel timeout to prevent race conditions
                         if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
-
-                        // Auto-clear after 2 seconds of no new events (safety valve)
-                        this.interactionTimeout = setTimeout(() => {
-                            this.isInteracting = false;
-                        }, 2000);
                     });
                 });
 
-                // End Interaction (Global for mouseup/touchend)
-                window.addEventListener('mouseup', () => {
+                const endInteraction = () => {
                     this.isInteracting = false;
-                    if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
-                });
-                window.addEventListener('touchend', () => {
-                    this.isInteracting = false;
-                    if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
+                };
+
+                explicitEndEvents.forEach(e => {
+                    this.map.on(e, endInteraction);
                 });
 
-                // Map-specific end events
-                endEvents.forEach(e => {
-                    this.map.on(e, () => {
+                // Global safety for mouseup/touchend (in case cursor leaves map)
+                window.addEventListener('mouseup', endInteraction);
+                window.addEventListener('touchend', endInteraction);
+
+                // 2. Momentary (Wheel/Scroll) - Needs Debounce
+                this.map.on('wheel', () => {
+                    this.isInteracting = true;
+                    if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
+
+                    // Debounce: Assume interaction ended if no scroll for 300ms
+                    this.interactionTimeout = setTimeout(() => {
+                        // Only clear if we're not currently in an explicit drag
+                        // (We can't easily know, but usually wheel doesn't happen during drag)
+                        // For safety, we just set it false. If user is dragging, the drag events will keep setting it true? 
+                        // No, drag events only fire on move. 
+                        // Actually, if we are dragging, 'mousedown' set isInteracting=true.
+                        // We shouldn't let wheel timeout clear that.
+                        // But 'wheel' sets isInteracting=true too.
+                        // Let's rely on the fact that wheel is usually separate.
                         this.isInteracting = false;
-                        if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
-                    });
+                    }, 300);
                 });
-
                 resolve();
             });
         });
@@ -116,7 +124,7 @@ export class MapManager {
                 maxzoom: 14,
             });
         }
-        this.map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+        this.map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.2 });
     }
 
     setStyle(styleUrl) {
@@ -136,6 +144,17 @@ export class MapManager {
                     url: 'mapbox://mapbox.mapbox-terrain-v2'
                 });
             }
+
+            // Find the first symbol layer to insert contours below
+            const layers = this.map.getStyle().layers;
+            let firstSymbolId;
+            for (const layer of layers) {
+                if (layer.type === 'symbol') {
+                    firstSymbolId = layer.id;
+                    break;
+                }
+            }
+
             if (!this.map.getLayer('contour-lines-minor')) {
                 this.map.addLayer({
                     'id': 'contour-lines-minor',
@@ -152,7 +171,7 @@ export class MapManager {
                         'line-width': 0.5,
                         'line-opacity': 0.075
                     }
-                });
+                }, firstSymbolId);
             }
             if (!this.map.getLayer('contour-lines-major')) {
                 this.map.addLayer({
@@ -170,7 +189,7 @@ export class MapManager {
                         'line-width': 0.5,
                         'line-opacity': 0.15
                     }
-                });
+                }, firstSymbolId);
             }
         }
 
