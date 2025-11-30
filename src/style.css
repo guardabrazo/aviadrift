@@ -800,7 +800,7 @@ button:active {
 @media (max-width: 768px) {
     .main-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: 1fr auto;
     }
 
     .panel {
@@ -836,6 +836,61 @@ button:active {
 
     .separator {
         display: none;
+    }
+
+    .left-column {
+        display: none;
+    }
+
+    .right-panel {
+        display: none;
+    }
+
+    .app-header {
+        justify-content: center;
+        padding: var(--spacing-sm);
+    }
+
+    .header-right {
+        display: none;
+    }
+
+    .header-left {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .footer-links {
+        display: none;
+    }
+
+    .credits-text {
+        display: block;
+        text-align: center;
+        margin-top: 4px;
+    }
+
+    .app-footer {
+        flex-direction: column;
+        justify-content: center;
+        padding: var(--spacing-sm);
+        gap: 4px;
+    }
+
+    /* Toggle Footer Text */
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+
+    /* Mobile Map Controls */
+    .mapboxgl-ctrl-bottom-right,
+    .mapboxgl-ctrl-bottom-left {
+        display: none !important;
     }
 
     /* Mapbox Overrides */

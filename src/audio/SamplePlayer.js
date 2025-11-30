@@ -15,7 +15,14 @@ export class SamplePlayer {
         // console.log(`Playing: ${meta.en} (${meta.gen} ${meta.sp}) [Vol: ${volume.toFixed(2)}, Pan: ${pan.toFixed(2)}]`);
 
         // Rewrite URL to use local proxy to avoid CORS
-        const proxyUrl = url.replace('https://xeno-canto.org', '/proxy-audio');
+        let proxyUrl = url;
+        if (import.meta.env.PROD) {
+            // Production: Use CORS Proxy
+            proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        } else {
+            // Development: Use local proxy
+            proxyUrl = url.replace('https://xeno-canto.org', '/proxy-audio');
+        }
 
         // Create nodes
         const panner = new Tone.Panner(pan).connect(this.output);

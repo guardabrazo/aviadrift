@@ -35,6 +35,9 @@ export class App {
 
         // 4. Resume Audio Context on First Interaction (Browser Policy)
         const resumeAudio = async () => {
+            // Stop animation immediately on any interaction
+            this.uiManager.stopPlayButtonAnimation();
+
             if (Tone.context.state !== 'running') {
                 console.log('Resuming Audio Context...');
                 await Tone.start();

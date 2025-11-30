@@ -274,4 +274,10 @@ export class UIManager {
 
         this.emit('toggleZenMode', isZen);
     }
+
+    stopPlayButtonAnimation() {
+        if (this.elements.playBtn) {
+            this.elements.playBtn.classList.remove('highlight-pulse');
+        }
+    }
 }
