@@ -166,49 +166,54 @@ export class Director {
         // CULL DISTANT SAMPLES
         this.cullDistantSamples(center);
 
-        // console.log("Fetching samples for", center);
+        try {
+            // Parallel Fetch
+            const [birdSamples, fieldSamples] = await Promise.all([
+                this.xcService.fetchSamples(center.lat, center.lng, this.searchRadius).catch(e => {
+                    console.error('XenoCanto Fetch Failed:', e);
+                    return [];
+                }),
+                this.fsService.fetchSamples(center.lat, center.lng, this.searchRadius * 2).catch(e => {
+                    console.error('Freesound Fetch Failed:', e);
+                    return [];
+                })
+            ]);
 
-        // Parallel Fetch
-        const [birdSamples, fieldSamples] = await Promise.all([
-            this.xcService.fetchSamples(center.lat, center.lng, this.searchRadius),
-            this.fsService.fetchSamples(center.lat, center.lng, this.searchRadius * 2) // Wider radius for field
-        ]);
+            // Update Bird Pool
+            if (birdSamples.length > 0) {
+                const newSamples = birdSamples.filter(s => !this.samplePool.some(existing => existing.id === s.id));
+                if (newSamples.length > 0) {
+                    // Combine new and existing
+                    let combined = [...newSamples, ...this.samplePool];
 
-        // Update Bird Pool
-        if (birdSamples.length > 0) {
-            const newSamples = birdSamples.filter(s => !this.samplePool.some(existing => existing.id === s.id));
-            if (newSamples.length > 0) {
-                // Combine new and existing
-                let combined = [...newSamples, ...this.samplePool];
+                    // Get currently playing IDs
+                    const playingIds = this.player ? this.player.players.map(p => p.metadata && p.metadata.id).filter(Boolean) : [];
 
-                // Get currently playing IDs
-                const playingIds = this.player ? this.player.players.map(p => p.metadata && p.metadata.id).filter(Boolean) : [];
+                    // Separate playing vs others
+                    const playing = combined.filter(s => playingIds.includes(s.id));
+                    const others = combined.filter(s => !playingIds.includes(s.id));
 
-                // Separate playing vs others
-                const playing = combined.filter(s => playingIds.includes(s.id));
-                const others = combined.filter(s => !playingIds.includes(s.id));
+                    // Trim 'others' to fit maxPoolSize (minus playing count)
+                    const spaceLeft = Math.max(0, this.maxPoolSize - playing.length);
+                    const keptOthers = others.slice(0, spaceLeft);
 
-                // Trim 'others' to fit maxPoolSize (minus playing count)
-                const spaceLeft = Math.max(0, this.maxPoolSize - playing.length);
-                const keptOthers = others.slice(0, spaceLeft);
-
-                this.samplePool = [...playing, ...keptOthers];
-
-                // console.log(`Bird Pool updated: +${newSamples.length}`);
-            }
-        }
-
-        // Update Field Pool
-        if (fieldSamples.length > 0) {
-            const newField = fieldSamples.filter(s => !this.fieldPool.some(existing => existing.id === s.id));
-            if (newField.length > 0) {
-                this.fieldPool = [...newField, ...this.fieldPool];
-                // Keep field pool smaller/fresher
-                if (this.fieldPool.length > 10) {
-                    this.fieldPool = this.fieldPool.slice(0, 10);
+                    this.samplePool = [...playing, ...keptOthers];
                 }
-                // console.log(`Field Pool updated: +${newField.length}`);
             }
+
+            // Update Field Pool
+            if (fieldSamples.length > 0) {
+                const newField = fieldSamples.filter(s => !this.fieldPool.some(existing => existing.id === s.id));
+                if (newField.length > 0) {
+                    this.fieldPool = [...newField, ...this.fieldPool];
+                    // Keep field pool smaller/fresher
+                    if (this.fieldPool.length > 10) {
+                        this.fieldPool = this.fieldPool.slice(0, 10);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error in checkAndFetchSamples:', e);
         }
     }
 

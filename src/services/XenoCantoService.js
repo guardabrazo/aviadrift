@@ -26,9 +26,9 @@ export class XenoCantoService {
 
             let url;
             if (import.meta.env.PROD) {
-                // Production: Use AllOrigins Proxy (more reliable than corsproxy.io)
+                // Production: Use CodeTabs Proxy (Alternative to corsproxy.io)
                 const targetUrl = `https://www.xeno-canto.org/api/2/recordings?query=${encodeURIComponent(query)}`;
-                url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                url = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
             } else {
                 // Development: Use local proxy
                 url = `${this.baseUrl}?query=${encodeURIComponent(query)}&key=${apiKey}`;
