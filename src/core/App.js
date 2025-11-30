@@ -125,7 +125,18 @@ export class App {
         let natureCount = 0;
 
         features.forEach(f => {
-            if (f.layer.id.includes('water')) waterCount++;
+            if (f.layer.id.includes('water')) {
+                // Filter out rivers/streams
+                const isRiver = f.properties?.class === 'river' ||
+                    f.properties?.class === 'stream' ||
+                    f.properties?.class === 'canal' ||
+                    f.layer.id.includes('river') ||
+                    f.layer.id.includes('stream');
+
+                if (!isRiver) {
+                    waterCount++;
+                }
+            }
             else if (f.layer.id.includes('building') || f.layer.id.includes('road')) buildingCount++;
             else if (f.layer.id.includes('landuse') || f.layer.id.includes('park')) natureCount++;
         });

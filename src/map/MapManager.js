@@ -59,27 +59,46 @@ export class MapManager {
         });
 
         this.isInteracting = false;
+        this.interactionTimeout = null;
 
         return new Promise((resolve) => {
             this.map.on('load', () => {
                 this.addTerrain();
+                this.applyStyleOverrides(initialStyle);
                 this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
                 // Track User Interaction
-                const startEvents = ['mousedown', 'touchstart', 'dragstart', 'rotatestart', 'pitchstart'];
+                const startEvents = ['mousedown', 'touchstart', 'dragstart', 'rotatestart', 'pitchstart', 'wheel'];
                 const endEvents = ['mouseup', 'touchend', 'dragend', 'rotateend', 'pitchend'];
 
+                // Start Interaction
                 startEvents.forEach(e => {
                     this.map.on(e, () => {
                         this.isInteracting = true;
-                        // console.log('Interaction Start:', e);
+                        if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
+
+                        // Auto-clear after 2 seconds of no new events (safety valve)
+                        this.interactionTimeout = setTimeout(() => {
+                            this.isInteracting = false;
+                        }, 2000);
                     });
                 });
 
+                // End Interaction (Global for mouseup/touchend)
+                window.addEventListener('mouseup', () => {
+                    this.isInteracting = false;
+                    if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
+                });
+                window.addEventListener('touchend', () => {
+                    this.isInteracting = false;
+                    if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
+                });
+
+                // Map-specific end events
                 endEvents.forEach(e => {
                     this.map.on(e, () => {
                         this.isInteracting = false;
-                        // console.log('Interaction End:', e);
+                        if (this.interactionTimeout) clearTimeout(this.interactionTimeout);
                     });
                 });
 
@@ -104,7 +123,74 @@ export class MapManager {
         this.map.setStyle(styleUrl);
         this.map.once('style.load', () => {
             this.addTerrain();
+            this.applyStyleOverrides(styleUrl);
         });
+    }
+
+    applyStyleOverrides(styleUrl) {
+        // 1. Dark Mode: Add Contours
+        if (styleUrl.includes('dark')) {
+            if (!this.map.getSource('contours')) {
+                this.map.addSource('contours', {
+                    type: 'vector',
+                    url: 'mapbox://mapbox.mapbox-terrain-v2'
+                });
+            }
+            if (!this.map.getLayer('contour-lines-minor')) {
+                this.map.addLayer({
+                    'id': 'contour-lines-minor',
+                    'type': 'line',
+                    'source': 'contours',
+                    'source-layer': 'contour',
+                    'filter': ['!=', ['%', ['get', 'ele'], 100], 0],
+                    'layout': {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': '#ffffff',
+                        'line-width': 0.5,
+                        'line-opacity': 0.075
+                    }
+                });
+            }
+            if (!this.map.getLayer('contour-lines-major')) {
+                this.map.addLayer({
+                    'id': 'contour-lines-major',
+                    'type': 'line',
+                    'source': 'contours',
+                    'source-layer': 'contour',
+                    'filter': ['==', ['%', ['get', 'ele'], 100], 0],
+                    'layout': {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': '#ffffff',
+                        'line-width': 0.5,
+                        'line-opacity': 0.15
+                    }
+                });
+            }
+        }
+
+        // 2. Outdoors Mode: Remove POIs and Markers
+        if (styleUrl.includes('outdoors')) {
+            const layers = this.map.getStyle().layers;
+            layers.forEach(layer => {
+                const id = layer.id;
+                if (
+                    id.includes('poi-label') ||
+                    id.includes('poi-scalerank') ||
+                    id.includes('road-label') ||
+                    id.includes('road-number-shield') ||
+                    id.includes('peak-label') ||
+                    id.includes('natural-point-label')
+                ) {
+                    this.map.setLayoutProperty(id, 'visibility', 'none');
+                }
+            });
+        }
     }
 
     getCenter() {
@@ -125,7 +211,6 @@ export class MapManager {
             return [];
         }
     }
-
 
     resize() {
         if (this.map) {

@@ -920,7 +920,7 @@ button:active {
 
     /* Center Compass in Visible Map Area (Offset for Bottom Panel) */
     #compass-container {
-        top: 38% !important;
+        top: 50% !important;
     }
 }
 
