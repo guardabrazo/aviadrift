@@ -107,6 +107,14 @@ body {
     color: var(--text-primary);
 }
 
+.overlay-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
 .overlay-title {
     font-size: 64px;
     font-weight: 300;
@@ -115,12 +123,17 @@ body {
     text-transform: uppercase;
 }
 
-.overlay-subtitle {
-    font-size: 18px;
+.overlay-description {
+    font-size: 12px;
     font-weight: 400;
     letter-spacing: 2px;
     color: var(--text-muted);
     text-transform: uppercase;
+    margin-bottom: var(--spacing-lg);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
 }
 
 /* ... existing styles ... */
@@ -1158,5 +1171,26 @@ body.zen-mode .center-panel {
     to {
         opacity: 1;
         transform: translate(-50%, 0);
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Mobile Overlay Adjustments */
+    .overlay-title {
+        font-size: 32px;
+        letter-spacing: 8px;
+    }
+
+    .overlay-description {
+        font-size: 10px;
+        letter-spacing: 1px;
+        padding: 0 var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .overlay-subtitle {
+        font-size: 14px;
+        letter-spacing: 3px;
     }
 }
