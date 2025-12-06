@@ -486,13 +486,6 @@ select {
     flex: 1;
 }
 
-/* Specific fix for compass style dropdown to fit on line */
-#vis-mode-select {
-    width: 100px;
-    /* Fixed width to ensure it fits */
-    flex: none;
-}
-
 select:hover {
     border-color: var(--border-interactive);
 }

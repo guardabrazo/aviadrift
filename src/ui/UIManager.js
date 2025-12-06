@@ -27,12 +27,6 @@ export class UIManager {
             masterVolumeInput: document.getElementById('master-volume'),
             masterVolumeVal: document.getElementById('master-volume-val'),
 
-            birdsVolumeInput: document.getElementById('birds-volume'),
-            birdsVolumeVal: document.getElementById('birds-volume-val'),
-
-            fieldVolumeInput: document.getElementById('field-volume'),
-            fieldVolumeVal: document.getElementById('field-volume-val'),
-
             statusKey: document.getElementById('status-key'),
             statusMode: document.getElementById('status-mode'),
             densityBar: document.getElementById('status-density-bar'),
@@ -126,42 +120,18 @@ export class UIManager {
             });
         }
 
-        const visModeSelect = document.getElementById('vis-mode-select');
-        if (visModeSelect) {
-            visModeSelect.addEventListener('change', (e) => {
-                this.emit('setVisMode', e.target.value);
-            });
-        }
-
         const refreshBtn = document.getElementById('refresh-btn');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => {
                 this.emit('forceRefresh');
             });
         }
-        const compassSizeSlider = document.getElementById('compass-size-slider');
-        const compassSizeVal = document.getElementById('compass-size-val');
-        if (compassSizeSlider) {
-            compassSizeSlider.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value);
-                this.emit('setCompassSize', val);
-                if (compassSizeVal) compassSizeVal.textContent = `${val.toFixed(1)}x`;
-            });
-        }
 
-        if (this.elements.birdsVolumeInput) {
-            this.elements.birdsVolumeInput.addEventListener('input', (e) => {
+        if (this.elements.masterVolumeInput) {
+            this.elements.masterVolumeInput.addEventListener('input', (e) => {
                 const val = parseInt(e.target.value);
-                this.emit('setBirdsVolume', val);
-                if (this.elements.birdsVolumeVal) this.elements.birdsVolumeVal.textContent = `${val}%`;
-            });
-        }
-
-        if (this.elements.fieldVolumeInput) {
-            this.elements.fieldVolumeInput.addEventListener('input', (e) => {
-                const val = parseInt(e.target.value);
-                this.emit('setFieldVolume', val);
-                if (this.elements.fieldVolumeVal) this.elements.fieldVolumeVal.textContent = `${val}%`;
+                this.emit('setMasterVolume', val);
+                if (this.elements.masterVolumeVal) this.elements.masterVolumeVal.textContent = `${val}%`;
             });
         }
 

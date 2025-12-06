@@ -10,7 +10,6 @@ export class Director {
     constructor(mapManager, uiManager) {
         this.mapManager = mapManager;
         this.uiManager = uiManager;
-        // this.visLayer = visLayer; // Removed
         this.compass = new Compass();
         this.wanderer = new Wanderer(mapManager);
         this.xcService = new XenoCantoService();
@@ -24,8 +23,7 @@ export class Director {
         this.fieldPool = [];  // Field Recordings
         this.maxPoolSize = 60; // Reduced from 300 to force rotation
 
-        this.birdsVolume = 0.7;
-        this.fieldVolume = 0.5;
+        this.masterVolume = 0.7;
         this.showCompass = true; // Default ON
 
         // Bind methods
@@ -56,14 +54,6 @@ export class Director {
                 else this.wanderer.stop();
             });
 
-            this.uiManager.on('setVisMode', (mode) => {
-                this.compass.setMode(mode);
-            });
-
-            this.uiManager.on('setCompassSize', (val) => {
-                this.compass.setSize(val);
-            });
-
             this.uiManager.on('setAutopilot', (enabled) => {
                 this.wanderer.setMode(enabled ? 'random' : 'locked');
             });
@@ -77,14 +67,11 @@ export class Director {
                 this.searchRadius = val;
             });
 
-            this.uiManager.on('setBirdsVolume', (val) => {
-                this.birdsVolume = val / 100;
-                this.player.setVolume('xeno-canto', this.birdsVolume);
-            });
-
-            this.uiManager.on('setFieldVolume', (val) => {
-                this.fieldVolume = val / 100;
-                this.player.setVolume('freesound', this.fieldVolume);
+            this.uiManager.on('setMasterVolume', (val) => {
+                this.masterVolume = val / 100;
+                // Keep the relative mix: birds at full, background at ~70% of master
+                this.player.setVolume('xeno-canto', this.masterVolume);
+                this.player.setVolume('freesound', this.masterVolume * 0.7);
             });
 
             this.uiManager.on('forceRefresh', () => {
@@ -129,7 +116,6 @@ export class Director {
         // Update Visualization Amplitudes
         if (this.player) {
             const amps = this.player.getAmplitudes();
-            // this.visLayer.updateAmplitudes(amps); // Removed
 
             // Update Compass
             // Pass ALL samples to the compass, not just active ones
@@ -347,7 +333,7 @@ export class Director {
                     sample.playCount = (sample.playCount || 0) + 1;
 
                     const pan = (Math.random() * 1.6) - 0.8;
-                    const volume = (0.4 + (Math.random() * 0.4)) * this.birdsVolume; // Apply Master Bird Volume
+                    const volume = (0.4 + (Math.random() * 0.4)) * this.masterVolume; // Apply Master Volume
 
                     if (this.uiManager) this.uiManager.addPlayingSample(sample);
 
@@ -359,15 +345,9 @@ export class Director {
                         volume,
                         onEnded: () => {
                             if (this.uiManager) this.uiManager.removePlayingSample(sample.id);
-                            // if (this.visLayer) this.visLayer.removeNode(sample.id); // Removed
                         }
                     });
                 }
-
-                // Add Visual Node
-                // if (this.visLayer && sample.lat && sample.lng) {
-                //     this.visLayer.addNode(sample.id, sample.lat, sample.lng, sample.name);
-                // }
             }
         }
 
@@ -383,7 +363,7 @@ export class Director {
 
                 // Field recordings are usually stereo/ambient, keep pan central-ish
                 const pan = (Math.random() * 0.4) - 0.2;
-                const volume = (0.5 + (Math.random() * 0.3)) * this.fieldVolume; // Apply Master Field Volume
+                const volume = (0.5 + (Math.random() * 0.3)) * this.masterVolume * 0.7; // Apply Master Volume (background at 70%)
 
                 // console.log(`Playing Field: ${sample.name}`);
 

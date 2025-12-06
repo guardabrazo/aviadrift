@@ -9,7 +9,6 @@ export class App {
     constructor() {
         this.mapManager = new MapManager(MAPBOX_TOKEN);
         this.uiManager = new UIManager();
-        // this.visLayer = new ConstellationLayer(); // Removed
         this.director = new Director(this.mapManager, this.uiManager);
         this.animationFrameId = null;
     }
@@ -21,7 +20,6 @@ export class App {
 
         // 2. Init Map
         await this.mapManager.init('map');
-        // this.mapManager.addCustomLayer(this.visLayer); // Removed
 
         // 3. Silent Start (Load Audio Buffers & Start Logic)
         try {
