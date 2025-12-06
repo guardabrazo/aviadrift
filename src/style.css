@@ -401,44 +401,6 @@ body {
     display: none;
 }
 
-/* Status Display */
-.status-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.status-row label {
-    font-size: 10px;
-    letter-spacing: var(--letter-spacing-sm);
-    text-transform: uppercase;
-    color: var(--text-secondary);
-}
-
-.status-value {
-    font-size: 10px;
-    letter-spacing: var(--letter-spacing-sm);
-    color: var(--accent);
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.meter-container {
-    flex: 1;
-    height: 4px;
-    background: var(--border-medium);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.meter-bar {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width 0.2s ease;
-}
-
 /* Control Rows */
 .control-row {
     display: flex;
@@ -1117,6 +1079,7 @@ body.zen-mode .center-panel {
 
 #zen-overlay {
     background: rgba(0, 0, 0, 0.8);
+    letter-spacing: 3px;
     pointer-events: none;
     /* Base state (Visible): Immediate visibility, fade in opacity */
     opacity: 1;

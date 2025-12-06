@@ -1,12 +1,7 @@
-import * as Tone from 'tone';
 export class UIManager {
     constructor() {
         this.callbacks = {};
         this.elements = {};
-
-        // Bird Watcher State
-        this.playingSamples = {}; // id -> speciesName
-        this.speciesCounts = {};  // speciesName -> count
     }
 
     init() {
@@ -16,26 +11,16 @@ export class UIManager {
 
     cacheElements() {
         this.elements = {
-            initOverlay: document.getElementById('init-overlay'), // This might be unused now, but keeping for safety
             startOverlay: document.getElementById('start-overlay'),
             playBtn: document.getElementById('play-btn'),
             stopBtn: document.getElementById('stop-btn'),
             flySpeedInput: document.getElementById('fly-speed'),
             flySpeedVal: document.getElementById('fly-speed-val'),
             mapStyleInput: document.getElementById('map-style'),
-
             masterVolumeInput: document.getElementById('master-volume'),
             masterVolumeVal: document.getElementById('master-volume-val'),
-
-            statusKey: document.getElementById('status-key'),
-            statusMode: document.getElementById('status-mode'),
-            densityBar: document.getElementById('status-density-bar'),
-
-            // Wanderer Controls
             flightToggle: document.getElementById('flight-toggle'),
             autopilotToggle: document.getElementById('autopilot-toggle'),
-
-            // View Controls
             compassToggle: document.getElementById('compass-toggle'),
         };
     }
@@ -54,14 +39,11 @@ export class UIManager {
     }
 
     setupEventListeners() {
-        const {
-            initOverlay, startOverlay, playBtn, stopBtn, flySpeedInput,
-            mapStyleInput, volumeInput, manualModeToggle, raindropBtn
-        } = this.elements;
+        const { startOverlay, playBtn, stopBtn, flySpeedInput, mapStyleInput } = this.elements;
 
         if (startOverlay) {
             const start = () => {
-                this.hideOverlay(); // Fade out immediately
+                this.hideOverlay();
                 this.emit('play');
             };
             startOverlay.addEventListener('click', start);
@@ -70,8 +52,6 @@ export class UIManager {
 
         if (playBtn) {
             playBtn.addEventListener('click', () => {
-                // Auto-init audio if not ready
-                // App.js handles the logic, we just emit
                 this.emit('play');
                 playBtn.style.borderColor = 'var(--accent)';
                 if (stopBtn) stopBtn.style.borderColor = '';
@@ -85,8 +65,6 @@ export class UIManager {
                 stopBtn.style.borderColor = 'var(--accent)';
             });
         }
-
-
 
         if (flySpeedInput) {
             flySpeedInput.addEventListener('input', (e) => {
@@ -135,16 +113,6 @@ export class UIManager {
             });
         }
 
-        if (manualModeToggle) {
-            manualModeToggle.addEventListener('change', (e) => {
-                const enabled = e.target.checked;
-                this.emit('toggleManualMode', enabled);
-                this.toggleManualControls(enabled);
-            });
-        }
-
-
-
         if (this.elements.flightToggle) {
             this.elements.flightToggle.addEventListener('change', (e) => {
                 this.emit('setFlight', e.target.checked);
@@ -155,13 +123,13 @@ export class UIManager {
             // Rotary Knob Logic
             this.knob = document.getElementById('heading-knob');
             this.isDraggingKnob = false;
-            this.currentKnobAngle = 0; // Initialize to 0 (North)
+            this.currentKnobAngle = 0;
 
             if (this.knob) {
                 this.knob.addEventListener('mousedown', (e) => {
                     this.isDraggingKnob = true;
                     this.updateKnobFromEvent(e);
-                    document.body.style.userSelect = 'none'; // Prevent selection
+                    document.body.style.userSelect = 'none';
                 });
 
                 window.addEventListener('mousemove', (e) => {
@@ -176,7 +144,6 @@ export class UIManager {
                 });
             }
 
-            // Update Knob UI when autopilot changes
             this.on('setAutopilot', (enabled) => {
                 if (this.knob) {
                     if (enabled) {
@@ -187,21 +154,15 @@ export class UIManager {
                 }
             });
 
-            // Set initial state for heading slider (if it still exists, though knob replaces it)
-
-
             this.elements.autopilotToggle.addEventListener('change', (e) => {
                 const isAutopilot = e.target.checked;
                 this.emit('setAutopilot', isAutopilot);
 
-                // When toggling OFF, restore/apply the current manual heading
                 if (!isAutopilot && this.currentKnobAngle !== undefined) {
                     this.emit('setWanderDirection', this.currentKnobAngle);
                 }
             });
         }
-
-
 
         const zenBtn = document.getElementById('zen-mode-btn');
         if (zenBtn) {
@@ -222,24 +183,15 @@ export class UIManager {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        // Calculate angle from center to mouse
         const dx = e.clientX - centerX;
         const dy = e.clientY - centerY;
 
-        // Atan2 gives angle in radians from -PI to PI
-        // -PI/2 is up (0 deg for us)
         let angleRad = Math.atan2(dy, dx);
-
-        // Convert to degrees
         let angleDeg = angleRad * (180 / Math.PI);
-
-        // Adjust so 0 is UP (currently 0 is Right)
         angleDeg += 90;
-
-        // Normalize to 0-360
         if (angleDeg < 0) angleDeg += 360;
 
-        this.currentKnobAngle = angleDeg; // Store for autopilot toggle
+        this.currentKnobAngle = angleDeg;
         this.setKnobRotation(angleDeg);
         this.emit('setWanderDirection', angleDeg);
     }
@@ -250,89 +202,8 @@ export class UIManager {
         }
     }
 
-    updateStatus(type, harmonyMode, density) {
-        if (this.elements.statusKey) this.elements.statusKey.textContent = type.toUpperCase();
-        if (this.elements.statusMode) this.elements.statusMode.textContent = harmonyMode.toUpperCase();
-        if (this.elements.densityBar) this.elements.densityBar.style.width = `${density * 100}%`;
-    }
-
-    setLoadingText(text) {
-        if (this.elements.initOverlay) this.elements.initOverlay.textContent = text;
-    }
-
     hideOverlay() {
-        if (this.elements.initOverlay) this.elements.initOverlay.classList.add('hidden');
         if (this.elements.startOverlay) this.elements.startOverlay.classList.add('hidden');
-    }
-
-    addPlayingSample(sample) {
-        const list = document.getElementById('now-playing-list');
-        if (!list) return;
-
-        const speciesName = (sample.gen && sample.sp) ? `${sample.gen} ${sample.sp}` : (sample.name || 'Unknown Species');
-
-        // Track this sample instance
-        this.playingSamples[sample.id] = speciesName;
-
-        // Check if species is already playing
-        if (!this.speciesCounts[speciesName]) {
-            this.speciesCounts[speciesName] = 0;
-
-            // Create new card
-            const card = document.createElement('div');
-            card.className = 'bird-card';
-            // Use species name as ID for the card (sanitized)
-            const cardId = `species-${speciesName.replace(/\s+/g, '-')}`;
-            card.id = cardId;
-            card.textContent = speciesName;
-
-            list.appendChild(card);
-        }
-
-        // Increment count
-        this.speciesCounts[speciesName]++;
-    }
-
-    removePlayingSample(id) {
-        // Look up species name
-        const speciesName = this.playingSamples[id];
-        if (!speciesName) return;
-
-        // Decrement count
-        if (this.speciesCounts[speciesName] > 0) {
-            this.speciesCounts[speciesName]--;
-        }
-
-        // Clean up sample tracking
-        delete this.playingSamples[id];
-
-        // If no more instances of this species, remove card
-        if (!this.speciesCounts[speciesName] || this.speciesCounts[speciesName] <= 0) {
-            const cardId = `species-${speciesName.replace(/\s+/g, '-')}`;
-            const card = document.getElementById(cardId);
-
-            if (card) {
-                card.classList.add('removing');
-                card.addEventListener('transitionend', () => {
-                    card.remove();
-                });
-                // Fallback if transition doesn't fire (e.g. hidden)
-                setTimeout(() => {
-                    if (card && card.parentNode) card.remove();
-                }, 500);
-            }
-
-            delete this.speciesCounts[speciesName];
-        }
-    }
-
-    clearNowPlaying() {
-        const list = document.getElementById('now-playing-list');
-        if (list) {
-            list.innerHTML = '';
-        }
-        this.playingSamples = {};
-        this.speciesCounts = {};
     }
 
     toggleZenMode() {
@@ -342,12 +213,8 @@ export class UIManager {
         if (isZen) {
             const overlay = document.getElementById('zen-overlay');
             if (overlay) {
-                // Ensure it's in the DOM (remove display: none)
                 overlay.style.display = '';
-
-                // Force Reflow to enable transition from opacity: 0
                 void overlay.offsetWidth;
-
                 overlay.classList.remove('hidden');
                 setTimeout(() => {
                     overlay.classList.add('hidden');

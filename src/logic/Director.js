@@ -285,12 +285,7 @@ export class Director {
         this.lastFetchTime = 0;
         this.lastFetchLocation = null;
 
-        // 4. Clear UI
-        if (this.uiManager) {
-            this.uiManager.clearNowPlaying();
-        }
-
-        // 5. Clear Compass Markers
+        // 4. Clear Compass Markers
         if (this.compass) {
             this.compass.markerStates.clear();
         }
@@ -333,19 +328,13 @@ export class Director {
                     sample.playCount = (sample.playCount || 0) + 1;
 
                     const pan = (Math.random() * 1.6) - 0.8;
-                    const volume = (0.4 + (Math.random() * 0.4)) * this.masterVolume; // Apply Master Volume
+                    const volume = (0.4 + (Math.random() * 0.4)) * this.masterVolume;
 
-                    if (this.uiManager) this.uiManager.addPlayingSample(sample);
-
-                    // Ensure source type is set
                     sample.source = 'xeno-canto';
 
                     this.player.play(sample.file, sample, {
                         pan,
-                        volume,
-                        onEnded: () => {
-                            if (this.uiManager) this.uiManager.removePlayingSample(sample.id);
-                        }
+                        volume
                     });
                 }
             }
@@ -379,17 +368,5 @@ export class Director {
                 });
             }
         }
-    }
-
-    getConductorState() {
-        return { type: 'geo', density: 0, entropy: 0, harmonyMode: 'wandering' };
-    }
-
-    getEngineState() {
-        return {
-            progressionIndex: 0,
-            currentChord: 'geo-wandering',
-            noise: { timing: 0, flam: 0, velocity: 0, sustain: 0 }
-        };
     }
 }
